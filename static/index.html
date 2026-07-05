@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pramaan — EPR Audit Verification</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,300;9..144,600;9..144,700&family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#1C2B4A;
+    --ink-soft:#3B4D72;
+    --paper:#F1ECDF;
+    --paper-deep:#E6DEC8;
+    --buff:#E2D3A1;
+    --buff-line:#C9B679;
+    --seal:#9E2B25;
+    --seal-deep:#7A1F1B;
+    --verified:#2E6E49;
+    --verified-deep:#1F4E34;
+    --amber:#A8731B;
+    --amber-deep:#7F5712;
+    --paper-edge: rgba(28,43,74,0.14);
+    --shadow: 0 1px 0 rgba(28,43,74,0.05), 0 8px 24px rgba(28,43,74,0.08);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:
+      radial-gradient(circle at 12% 0%, rgba(28,43,74,0.05), transparent 40%),
+      var(--paper);
+    color:var(--ink);
+    font-family:"IBM Plex Sans", system-ui, sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3{font-family:"Fraunces", serif; margin:0; letter-spacing:-0.01em;}
+  ::selection{background:var(--buff-line); color:var(--ink);}
+  a{color:inherit;}
+
+  /* ---------- top bar ---------- */
+  header.topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    flex-wrap:wrap; gap:14px;
+    padding:18px 28px;
+    background:var(--ink);
+    color:var(--paper);
+    border-bottom:4px solid var(--seal);
+  }
+  .brand{display:flex; align-items:center; gap:12px;}
+  .brand-mark{
+    width:38px; height:38px; border-radius:50%;
+    border:2px solid var(--paper);
+    display:flex; align-items:center; justify-content:center;
+    font-family:"Fraunces", serif; font-weight:700; font-size:18px;
+    flex:none;
+  }
+  .brand-text{display:flex; flex-direction:column; line-height:1.15;}
+  .brand-name{font-family:"Fraunces", serif; font-weight:700; font-size:20px; letter-spacing:0.01em;}
+  .brand-tag{font-family:"IBM Plex Mono", monospace; font-size:11px; letter-spacing:0.06em; text-transform:uppercase; color:#C8CFE0;}
+  nav.tabs{display:flex; gap:6px; background:rgba(255,255,255,0.06); padding:4px; border-radius:8px;}
+  .tab{
+    font-family:"IBM Plex Sans", sans-serif; font-weight:600; font-size:13.5px;
+    color:#D9DEEC; background:transparent; border:none; cursor:pointer;
+    padding:9px 16px; border-radius:6px; transition:background .15s, color .15s;
+  }
+  .tab:hover{background:rgba(255,255,255,0.08);}
+  .tab.active{background:var(--paper); color:var(--ink);}
+  .tab:focus-visible, button:focus-visible, input:focus-visible{outline:2px solid var(--seal); outline-offset:2px;}
+
+  main{max-width:880px; margin:0 auto; padding:32px 20px 80px;}
+  .view.hidden{display:none;}
+
+  /* ---------- file card ---------- */
+  .file-card{
+    background:var(--paper);
+    border:1px solid var(--paper-edge);
+    box-shadow:var(--shadow);
+    border-radius:4px;
+    padding:28px 28px 32px;
+    position:relative;
+  }
+  .file-card::before{
+    content:"";
+    position:absolute; left:0; top:34px; bottom:34px; width:6px;
+    background:repeating-linear-gradient(180deg, var(--seal) 0 14px, transparent 14px 22px);
+    opacity:0.55;
+  }
+  .file-card__head{
+    display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:10px;
+    margin-bottom:18px; padding-bottom:14px; border-bottom:1px dashed var(--buff-line);
+  }
+  .file-no{font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:0.05em; color:var(--ink-soft); text-transform:uppercase;}
+  .file-no span{color:var(--seal); font-weight:600;}
+  .link-btn{background:none; border:none; color:var(--ink-soft); text-decoration:underline; cursor:pointer; font-family:"IBM Plex Sans"; font-size:13px; padding:0;}
+  .link-btn:hover{color:var(--seal);}
+
+  .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:18px 22px; margin-bottom:6px;}
+  label{display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:600; color:var(--ink-soft);}
+  input{
+    font-family:"IBM Plex Mono", monospace; font-size:14.5px; color:var(--ink);
+    background:#fff; border:1px solid var(--paper-edge); border-radius:4px;
+    padding:9px 10px; width:100%;
+  }
+  input::placeholder{color:#9aa3b8; font-style:italic;}
+
+  .docs-block{margin-top:26px;}
+  .docs-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;}
+  .docs-head h3{font-size:16px; font-weight:600;}
+  .btn-ghost{
+    font-family:"IBM Plex Sans"; font-weight:600; font-size:13px;
+    background:transparent; border:1.5px solid var(--ink-soft); color:var(--ink-soft);
+    padding:7px 12px; border-radius:5px; cursor:pointer;
+  }
+  .btn-ghost:hover{background:var(--ink); color:var(--paper); border-color:var(--ink);}
+
+  .docs-table{display:flex; flex-direction:column; gap:6px;}
+  .docs-row{
+    display:grid; grid-template-columns: 1.4fr 1fr 0.8fr 0.8fr 64px 28px;
+    gap:8px; align-items:center;
+  }
+  .docs-row--head{
+    font-family:"IBM Plex Mono", monospace; font-size:10.5px; text-transform:uppercase;
+    letter-spacing:0.05em; color:var(--ink-soft); padding:0 2px;
+  }
+  .doc-remove{
+    background:transparent; border:none; color:var(--seal); font-size:18px; cursor:pointer;
+    line-height:1; padding:4px;
+  }
+  .doc-remove:hover{color:var(--seal-deep);}
+  .ai-badge{
+    font-family:"IBM Plex Mono", monospace; font-size:9.5px; font-weight:600;
+    letter-spacing:0.04em; text-transform:uppercase; color:var(--verified-deep);
+    background:#E1EFE6; border-radius:3px; padding:3px 6px; text-align:center;
+    white-space:nowrap;
+  }
+
+  /* ---------- document upload zone ---------- */
+  .upload-zone{
+    margin-top:14px; display:flex; align-items:center; gap:12px; flex-wrap:wrap;
+  }
+  .btn-upload{
+    font-family:"IBM Plex Sans"; font-weight:600; font-size:13px;
+    background:var(--ink); color:var(--paper); border:none; border-radius:5px;
+    padding:9px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:7px;
+  }
+  .btn-upload:hover{background:var(--ink-soft);}
+  .btn-upload input[type="file"]{display:none;}
+  .upload-hint{font-size:12px; color:#9aa3b8;}
+  .upload-status{
+    margin-top:10px; display:flex; flex-direction:column; gap:6px;
+  }
+  .upload-status-item{
+    font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-soft);
+    display:flex; align-items:center; gap:8px;
+  }
+  .upload-status-item.error{color:var(--seal-deep);}
+  .upload-status-item.done{color:var(--verified-deep);}
+  .spinner{
+    width:12px; height:12px; border-radius:50%;
+    border:2px solid var(--paper-deep); border-top-color:var(--ink-soft);
+    animation:spin 0.7s linear infinite; flex:none;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+
+  .market-range{
+    margin-top:20px; font-size:13px; color:var(--ink-soft);
+    display:flex; align-items:center; gap:8px; flex-wrap:wrap;
+  }
+  .market-range input{width:70px; display:inline-block;}
+
+  .btn-stamp{
+    margin-top:26px; width:100%;
+    font-family:"Fraunces", serif; font-weight:600; font-size:17px; letter-spacing:0.01em;
+    background:var(--seal); color:#fff; border:none; border-radius:5px;
+    padding:14px 18px; cursor:pointer; transition:background .15s, transform .1s;
+  }
+  .btn-stamp:hover{background:var(--seal-deep);}
+  .btn-stamp:active{transform:scale(0.99);}
+
+  /* ---------- report panel ---------- */
+  .report-panel{margin-top:28px;}
+  .report-panel.hidden{display:none;}
+  .report-shell{
+    background:#fff; border:1px solid var(--paper-edge); border-radius:4px;
+    box-shadow:var(--shadow); padding:30px 28px; position:relative; overflow:hidden;
+  }
+  .report-top{display:flex; justify-content:space-between; align-items:flex-start; gap:18px; flex-wrap:wrap;}
+  .report-meta h2{font-size:20px; margin-bottom:4px;}
+  .report-meta p{margin:2px 0; font-size:13px; color:var(--ink-soft); font-family:"IBM Plex Mono", monospace;}
+
+  .stamp{
+    flex:none; width:128px; height:128px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; text-align:center;
+    border:4px double currentColor; transform:rotate(-9deg) scale(0.4); opacity:0;
+    font-family:"IBM Plex Sans"; font-weight:700; font-size:13px; letter-spacing:0.03em;
+    text-transform:uppercase; line-height:1.25; padding:10px;
+    animation: stamp-in 0.55s cubic-bezier(.2,1.4,.4,1) forwards;
+  }
+  .stamp::after{
+    content:""; position:absolute; inset:6px; border-radius:50%;
+    border:1px solid currentColor; opacity:0.5;
+  }
+  .stamp.verified{color:var(--verified);}
+  .stamp.low{color:#6E7F2E;}
+  .stamp.medium{color:var(--amber);}
+  .stamp.high{color:var(--seal);}
+  @keyframes stamp-in{
+    0%{transform:rotate(-9deg) scale(2.4); opacity:0;}
+    60%{transform:rotate(-9deg) scale(0.92); opacity:1;}
+    100%{transform:rotate(-9deg) scale(1); opacity:1;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .stamp{animation:none; transform:rotate(-9deg) scale(1); opacity:1;}
+  }
+
+  .score-line{
+    margin-top:18px; padding-top:16px; border-top:1px dashed var(--buff-line);
+    font-family:"IBM Plex Mono", monospace; font-size:12.5px; color:var(--ink-soft);
+  }
+
+  .flags{margin-top:22px; display:flex; flex-direction:column; gap:10px;}
+  .flag{
+    display:flex; gap:12px; padding:12px 14px; border-radius:5px; font-size:13.5px; line-height:1.5;
+    border-left:4px solid; background:var(--paper);
+  }
+  .flag.high{border-color:var(--seal); background:#FBEFED;}
+  .flag.medium{border-color:var(--amber); background:#FBF1E2;}
+  .flag.low{border-color:#8B9A3A; background:#F4F6E8;}
+  .flag b{font-family:"IBM Plex Mono", monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em; display:block; margin-bottom:3px;}
+  .no-flags{font-size:14px; color:var(--verified-deep); font-weight:600; padding:6px 0;}
+
+  .report-actions{display:flex; gap:10px; margin-top:24px; flex-wrap:wrap;}
+  .btn-secondary{
+    font-family:"IBM Plex Sans"; font-weight:600; font-size:13.5px;
+    background:var(--ink); color:var(--paper); border:none; border-radius:5px;
+    padding:10px 16px; cursor:pointer;
+  }
+  .btn-secondary:hover{background:var(--ink-soft);}
+  .btn-tertiary{
+    font-family:"IBM Plex Sans"; font-weight:600; font-size:13.5px;
+    background:transparent; color:var(--ink-soft); border:1.5px solid var(--paper-edge); border-radius:5px;
+    padding:10px 16px; cursor:pointer;
+  }
+
+  /* ---------- register view ---------- */
+  #view-register h2{font-size:24px; margin-bottom:18px;}
+  .register-table{width:100%; border-collapse:collapse; background:#fff; box-shadow:var(--shadow); border-radius:4px; overflow:hidden;}
+  .register-table th, .register-table td{
+    text-align:left; padding:11px 14px; font-size:13.5px; border-bottom:1px solid var(--paper-deep);
+  }
+  .register-table th{
+    font-family:"IBM Plex Mono", monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:0.05em;
+    color:var(--ink-soft); background:var(--paper-deep);
+  }
+  .register-table tbody tr:hover{background:var(--paper);}
+  .verdict-pill{
+    display:inline-block; padding:3px 10px; border-radius:20px; font-size:11.5px; font-weight:600;
+    font-family:"IBM Plex Mono", monospace; text-transform:uppercase; letter-spacing:0.04em;
+  }
+  .verdict-pill.verified{background:#E1EFE6; color:var(--verified-deep);}
+  .verdict-pill.low{background:#EFF3DD; color:#5A6826;}
+  .verdict-pill.medium{background:#F6E8CC; color:var(--amber-deep);}
+  .verdict-pill.high{background:#F5DCDA; color:var(--seal-deep);}
+  .row-view-btn{background:none;border:none;color:var(--ink-soft);text-decoration:underline;cursor:pointer;font-size:12.5px;font-family:"IBM Plex Sans";}
+  .empty-note{font-size:14px; color:var(--ink-soft); padding:18px 4px;}
+
+  footer.scope-note{
+    max-width:880px; margin:36px auto 0; padding:18px 20px 0;
+    border-top:1px solid var(--paper-edge); font-size:12.5px; color:var(--ink-soft); line-height:1.6;
+  }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:640px){
+    .grid-2{grid-template-columns:1fr;}
+    .docs-row{grid-template-columns:1fr; gap:4px; padding:10px; background:#fff; border-radius:5px; margin-bottom:4px;}
+    .docs-row--head{display:none;}
+    .doc-remove{justify-self:end;}
+    header.topbar{padding:14px 16px;}
+    .report-top{flex-direction:column;}
+  }
+
+  @media print{
+    header.topbar, .tabs, .btn-stamp, .report-actions, footer.scope-note, .file-card{display:none !important;}
+    body{background:#fff;}
+    .report-shell{box-shadow:none; border:none;}
+  }
+
+  .hidden{display:none !important;}
+  .ai-status-banner{
+    font-family:"IBM Plex Mono", monospace; font-size:12.5px;
+    border-radius:4px; padding:9px 12px; margin-bottom:16px;
+    border:1px dashed var(--amber); background:#FBF1E2; color:var(--amber-deep);
+  }
+  .ai-status-banner.ok{border-color:var(--verified); background:#E1EFE6; color:var(--verified-deep);}
+</style>
+
+</head>
+<body>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="brand-mark">P</span>
+    <div class="brand-text">
+      <span class="brand-name">Pramaan</span>
+      <span class="brand-tag">Verification, not vibes</span>
+    </div>
+  </div>
+  <nav class="tabs">
+    <button class="tab active" data-view="new">New Audit Case</button>
+    <button class="tab" data-view="register">Case Register</button>
+  </nav>
+</header>
+
+<main>
+
+  <section id="view-new" class="view">
+
+    <div class="file-card">
+      <div class="file-card__head">
+        <span class="file-no">Case file no. <span id="case-no-preview">2026-001</span></span>
+        <button class="link-btn" id="btn-sample">Load a sample case →</button>
+      </div>
+
+      <div id="ai-status-banner" class="ai-status-banner hidden"></div>
+
+      <div class="grid-2">
+        <label>Producer / facility name
+          <input id="f-name" type="text" placeholder="e.g. Shree Polymers Pvt. Ltd.">
+        </label>
+        <label>Reporting period
+          <input id="f-period" type="month">
+        </label>
+        <label>Claimed recycled quantity (kg)
+          <input id="f-claimed" type="number" min="0" placeholder="e.g. 14000">
+        </label>
+        <label>Registered facility capacity (kg / month)
+          <input id="f-capacity" type="number" min="0" placeholder="e.g. 15000">
+        </label>
+      </div>
+
+      <div class="docs-block">
+        <div class="docs-head">
+          <h3>Supporting documents</h3>
+          <button class="btn-ghost" id="btn-add-doc">+ Add document</button>
+        </div>
+        <div class="docs-table" id="docs-table">
+          <div class="docs-row docs-row--head">
+            <span>Invoice / e-way bill no.</span>
+            <span>Date</span>
+            <span>Quantity (kg)</span>
+            <span>Rate (₹/kg)</span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+        <div class="upload-zone">
+          <label class="btn-upload">
+            📎 Upload invoice / e-way bill (PDF or photo)
+            <input type="file" id="file-upload" accept="image/*,application/pdf" multiple>
+          </label>
+          <span class="upload-hint">The server reads the document with Claude and fills a row in below — you can correct anything before stamping.</span>
+        </div>
+        <div class="upload-status" id="upload-status"></div>
+      </div>
+
+      <div class="market-range">
+        Typical market rate for this material (₹/kg):
+        <input id="f-rate-min" type="number" value="18"> – <input id="f-rate-max" type="number" value="42">
+        <span style="font-size:12px; color:#9aa3b8;">(adjust to the material being audited)</span>
+      </div>
+
+      <button class="btn-stamp" id="btn-verify">Stamp this case →</button>
+    </div>
+
+    <div class="report-panel hidden" id="report-panel"></div>
+  </section>
+
+  <section id="view-register" class="view hidden">
+    <h2>Case register</h2>
+    <table class="register-table">
+      <thead>
+        <tr><th>Case no.</th><th>Producer</th><th>Period</th><th>Claimed (kg)</th><th>Verdict</th><th></th></tr>
+      </thead>
+      <tbody id="register-body"></tbody>
+    </table>
+    <p class="empty-note" id="register-empty">No cases yet. Run your first audit to see it appear here.</p>
+    <button class="btn-tertiary" id="btn-clear-all" style="margin-top:14px;">Clear all saved cases</button>
+  </section>
+
+</main>
+
+<footer class="scope-note">
+  <strong>Pramaan backend build:</strong> this version runs against a real local server with its own database — every stamped case is saved permanently (in <code>pramaan.db</code>) and checked against every case ever run, in any browser, with no dependency on Claude.ai. The "Upload" button sends the file to the server, which reads it with Claude using your own API key (see README.md) — if no key is configured, manual entry still works, the upload button will just say so.
+</footer>
+
+<script>
+let cases = [];
+
+function updateCaseNoPreview(){
+  document.getElementById('case-no-preview').textContent = '2026-' + String(cases.length + 1).padStart(3,'0');
+}
+
+function addDocRow(prefill){
+  prefill = prefill || {};
+  const row = document.createElement('div');
+  row.className = 'docs-row';
+  row.innerHTML =
+    '<input type="text" class="doc-invoice" placeholder="INV-2026-0042" value="' + (prefill.invoice||'') + '">' +
+    '<input type="date" class="doc-date" value="' + (prefill.date||'') + '">' +
+    '<input type="number" class="doc-qty" placeholder="kg" value="' + (prefill.qty||'') + '">' +
+    '<input type="number" class="doc-rate" placeholder="₹/kg" value="' + (prefill.rate||'') + '">' +
+    '<span class="ai-badge" style="visibility:' + (prefill.ai ? 'visible' : 'hidden') + '">AI · verify</span>' +
+    '<button class="doc-remove" title="Remove row" aria-label="Remove row">×</button>';
+  document.getElementById('docs-table').appendChild(row);
+  row.querySelector('.doc-remove').addEventListener('click', function(){ row.remove(); });
+  return row;
+}
+
+function collectDocs(){
+  return Array.from(document.querySelectorAll('.docs-row:not(.docs-row--head)')).map(function(row){
+    return {
+      invoice: row.querySelector('.doc-invoice').value.trim(),
+      date: row.querySelector('.doc-date').value,
+      qty: parseFloat(row.querySelector('.doc-qty').value) || 0,
+      rate: parseFloat(row.querySelector('.doc-rate').value) || 0
+    };
+  }).filter(function(d){ return d.invoice || d.qty > 0; });
+}
+
+/* ---------- AI document extraction — now via our own server, not the browser ---------- */
+
+function addUploadStatus(label){
+  const wrap = document.createElement('div');
+  wrap.className = 'upload-status-item';
+  wrap.innerHTML = '<span class="spinner"></span><span class="status-text">Reading ' + label + ' with AI…</span>';
+  document.getElementById('upload-status').appendChild(wrap);
+  return wrap;
+}
+
+function setUploadStatus(el, state, text){
+  el.className = 'upload-status-item ' + state;
+  el.innerHTML = (state === 'loading' ? '<span class="spinner"></span>' : (state === 'done' ? '✓ ' : '⚠ ')) + '<span class="status-text">' + text + '</span>';
+}
+
+async function extractDocumentFields(file){
+  const form = new FormData();
+  form.append('file', file);
+  const response = await fetch('/api/extract', { method: 'POST', body: form });
+  const data = await response.json();
+  if (!response.ok){
+    throw new Error(data.detail || ('Request failed (' + response.status + ')'));
+  }
+  return data;
+}
+
+async function handleFiles(fileList){
+  const files = Array.from(fileList);
+  for (const file of files){
+    const statusEl = addUploadStatus(file.name);
+    try {
+      const fields = await extractDocumentFields(file);
+      addDocRow({
+        invoice: fields.invoice_no || '',
+        date: fields.date || '',
+        qty: fields.quantity_kg != null ? fields.quantity_kg : '',
+        rate: fields.rate_per_kg != null ? fields.rate_per_kg : '',
+        ai: true
+      });
+      if (fields.facility_name){
+        const nameInput = document.getElementById('f-name');
+        if (!nameInput.value.trim()) nameInput.value = fields.facility_name;
+      }
+      const missing = ['invoice_no','date','quantity_kg','rate_per_kg'].filter(function(k){ return fields[k] == null; });
+      setUploadStatus(statusEl, 'done', file.name + ' — row added.' + (missing.length ? ' Could not read: ' + missing.join(', ') + ' — please fill in by hand.' : ' Please double-check the values before stamping.'));
+    } catch (err){
+      setUploadStatus(statusEl, 'error', file.name + ' — could not read this document (' + err.message + '). Please add this row by hand.');
+    }
+  }
+}
+
+function clearForm(){
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-period').value = '';
+  document.getElementById('f-claimed').value = '';
+  document.getElementById('f-capacity').value = '';
+  document.getElementById('f-rate-min').value = 18;
+  document.getElementById('f-rate-max').value = 42;
+  document.getElementById('docs-table').querySelectorAll('.docs-row:not(.docs-row--head)').forEach(function(r){ r.remove(); });
+  document.getElementById('upload-status').innerHTML = '';
+  addDocRow(); addDocRow();
+  document.getElementById('report-panel').classList.add('hidden');
+  document.getElementById('report-panel').innerHTML = '';
+}
+
+function loadSample(){
+  document.getElementById('f-name').value = 'Shree Polymers Pvt. Ltd.';
+  document.getElementById('f-period').value = '2026-04';
+  document.getElementById('f-claimed').value = 14000;
+  document.getElementById('f-capacity').value = 15000;
+  document.getElementById('f-rate-min').value = 18;
+  document.getElementById('f-rate-max').value = 42;
+  document.getElementById('docs-table').querySelectorAll('.docs-row:not(.docs-row--head)').forEach(function(r){ r.remove(); });
+  addDocRow({invoice:'INV-2026-2201', date:'2026-04-04', qty:4200, rate:27});
+  addDocRow({invoice:'INV-2026-2214', date:'2026-04-11', qty:3100, rate:25});
+  addDocRow({invoice:'INV-2026-2214', date:'2026-04-11', qty:3100, rate:25});
+  addDocRow({invoice:'INV-2026-2240', date:'2026-05-02', qty:2500, rate:61});
+  document.getElementById('report-panel').classList.add('hidden');
+}
+
+/* ---------- talking to the real backend ---------- */
+
+async function runVerification(){
+  const payload = {
+    name: document.getElementById('f-name').value.trim(),
+    period: document.getElementById('f-period').value,
+    claimed: parseFloat(document.getElementById('f-claimed').value) || 0,
+    capacity: parseFloat(document.getElementById('f-capacity').value) || 0,
+    rate_min: parseFloat(document.getElementById('f-rate-min').value) || 0,
+    rate_max: parseFloat(document.getElementById('f-rate-max').value) || 1e9,
+    docs: collectDocs()
+  };
+  const btn = document.getElementById('btn-verify');
+  btn.disabled = true;
+  btn.textContent = 'Stamping…';
+  try {
+    const resp = await fetch('/api/verify', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const record = await resp.json();
+    if (!resp.ok){ throw new Error(record.detail || 'Verification failed'); }
+    cases.unshift(record);
+    updateCaseNoPreview();
+    renderReport(record);
+    renderRegisterRows();
+  } catch (err){
+    alert('Could not run verification: ' + err.message + '\n\nIs the backend server running?');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Stamp this case →';
+  }
+}
+
+function renderReport(c){
+  const panel = document.getElementById('report-panel');
+  let flagsHtml = '';
+  if (!c.flags || c.flags.length === 0){
+    flagsHtml = '<p class="no-flags">No inconsistencies found across the checks run on this case.</p>';
+  } else {
+    flagsHtml = '<div class="flags">' + c.flags.map(function(f){
+      return '<div class="flag ' + f.severity + '"><div><b>' + f.severity + ' severity</b>' + f.text + '</div></div>';
+    }).join('') + '</div>';
+  }
+
+  panel.innerHTML =
+    '<div class="report-shell">' +
+      '<div class="report-top">' +
+        '<div class="report-meta">' +
+          '<h2>' + c.name + '</h2>' +
+          '<p>Case file no. ' + c.case_no + '</p>' +
+          '<p>Reporting period: ' + (c.period || '—') + '</p>' +
+          '<p>Claimed: ' + c.claimed + ' kg &nbsp;·&nbsp; Documented: ' + Number(c.doc_sum).toFixed(0) + ' kg</p>' +
+          '<p>Run on ' + c.ran_at + '</p>' +
+        '</div>' +
+        '<div class="stamp ' + c.verdict_class + '">' + c.verdict.replace(' — ', '<br>') + '</div>' +
+      '</div>' +
+      '<div class="score-line">Risk score: ' + c.score + ' &nbsp;(0 = clean · 1–3 low · 4–7 medium · 8+ high)</div>' +
+      flagsHtml +
+      '<div class="report-actions">' +
+        '<button class="btn-secondary" onclick="window.open(\'/api/cases/' + encodeURIComponent(c.case_no) + '/pdf\', \'_blank\')">Download PDF report</button>' +
+        '<button class="btn-tertiary" onclick="window.print()">Print this page instead</button>' +
+        '<button class="btn-tertiary" id="btn-new-case">Start a new case</button>' +
+      '</div>' +
+    '</div>';
+  panel.classList.remove('hidden');
+  panel.scrollIntoView({behavior:'smooth', block:'nearest'});
+  document.getElementById('btn-new-case').addEventListener('click', clearForm);
+}
+
+function renderRegisterRows(){
+  const body = document.getElementById('register-body');
+  const empty = document.getElementById('register-empty');
+  if (cases.length === 0){
+    body.innerHTML = '';
+    empty.style.display = 'block';
+    return;
+  }
+  empty.style.display = 'none';
+  body.innerHTML = cases.map(function(c){
+    return '<tr>' +
+      '<td>' + c.case_no + '</td>' +
+      '<td>' + c.name + '</td>' +
+      '<td>' + (c.period || '—') + '</td>' +
+      '<td>' + c.claimed + '</td>' +
+      '<td><span class="verdict-pill ' + c.verdict_class + '">' + c.verdict.replace('Flagged — ','').replace('Verified — no issues found','clean') + '</span></td>' +
+      '<td><button class="row-view-btn" onclick="reopenCase(\'' + c.case_no + '\')">View report</button> &nbsp;·&nbsp; <button class="row-view-btn" onclick="window.open(\'/api/cases/' + encodeURIComponent(c.case_no) + '/pdf\', \'_blank\')">PDF</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+async function loadCasesFromServer(){
+  try {
+    const resp = await fetch('/api/cases');
+    cases = await resp.json();
+  } catch (err){
+    console.warn('Could not load cases from server:', err);
+    cases = [];
+  }
+  updateCaseNoPreview();
+  renderRegisterRows();
+}
+
+async function reopenCase(caseNo){
+  switchView('new');
+  try {
+    const resp = await fetch('/api/cases/' + encodeURIComponent(caseNo));
+    const full = await resp.json();
+    renderReport(full);
+  } catch (err){
+    alert('Could not load case ' + caseNo);
+  }
+}
+
+async function clearAllCases(){
+  if (!confirm('This permanently deletes every saved case from the database. Continue?')) return;
+  try {
+    await fetch('/api/cases', { method: 'DELETE' });
+  } catch (err){
+    alert('Could not clear cases: ' + err.message);
+  }
+  await loadCasesFromServer();
+}
+
+async function checkAiStatus(){
+  const banner = document.getElementById('ai-status-banner');
+  try {
+    const resp = await fetch('/api/health');
+    const data = await resp.json();
+    if (data.ai_configured){
+      banner.className = 'ai-status-banner ok';
+      banner.textContent = 'AI document reading is configured — the upload button will read invoices automatically.';
+    } else {
+      banner.className = 'ai-status-banner';
+      banner.textContent = 'No ANTHROPIC_API_KEY is set on the server yet, so the upload button can\'t read documents automatically — manual entry below still works fine. See README.md to enable it.';
+    }
+    banner.classList.remove('hidden');
+  } catch (err){
+    banner.classList.add('hidden');
+  }
+}
+
+function switchView(view){
+  document.querySelectorAll('.tab').forEach(function(t){ t.classList.toggle('active', t.dataset.view === view); });
+  document.getElementById('view-new').classList.toggle('hidden', view !== 'new');
+  document.getElementById('view-register').classList.toggle('hidden', view !== 'register');
+  if (view === 'register') loadCasesFromServer();
+}
+
+document.addEventListener('DOMContentLoaded', async function(){
+  addDocRow(); addDocRow();
+  document.getElementById('btn-add-doc').addEventListener('click', function(){ addDocRow(); });
+  document.getElementById('btn-verify').addEventListener('click', runVerification);
+  document.getElementById('btn-sample').addEventListener('click', loadSample);
+  document.getElementById('file-upload').addEventListener('change', function(e){
+    if (e.target.files && e.target.files.length){ handleFiles(e.target.files); }
+    e.target.value = '';
+  });
+  document.getElementById('btn-clear-all').addEventListener('click', clearAllCases);
+  document.querySelectorAll('.tab').forEach(function(t){
+    t.addEventListener('click', function(){ switchView(t.dataset.view); });
+  });
+  checkAiStatus();
+  await loadCasesFromServer();
+});
+</script>
+
+
+</body>
+</html>
