@@ -182,7 +182,7 @@ Returns the full case record (case number, flags, score, verdict, etc.) and
 persists it to the database.
 
 **POST `/api/extract`** — multipart form upload with a `file` field. Accepts
-images and PDFs. Uses Gemini (`gemini-2.0-flash`) to return:
+images and PDFs. Uses Gemini (`gemini-2.5-flash`) to return:
 
 ```json
 {

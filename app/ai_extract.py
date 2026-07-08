@@ -12,14 +12,13 @@ import json
 import os
 import re
 import io
-import time
 import asyncio
 
 import httpx
-from PyPDF2 import PdfReader
+from PyPDF2 import PdfReader, PdfWriter
 
 GEMINI_API_URL = (
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent"
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
 )
 
 SYSTEM_PROMPT = (
@@ -49,11 +48,9 @@ def split_pdf_pages(file_bytes: bytes) -> list[bytes]:
     try:
         reader = PdfReader(io.BytesIO(file_bytes))
         pages = []
-        for i in range(len(reader.pages)):
-            writer = PdfReader()
-            writer._pages = [reader.pages[i]]
-            
-            # Write page to bytes
+        for page in reader.pages:
+            writer = PdfWriter()
+            writer.add_page(page)
             out = io.BytesIO()
             writer.write(out)
             pages.append(out.getvalue())
@@ -97,6 +94,12 @@ async def _call_gemini(file_bytes: bytes, media_type: str, api_key: str, retry_c
             "https://ai.google.dev/gemini-api/docs/rate-limits"
         )
     
+    if resp.status_code == 401:
+        raise ExtractionError(
+            "Invalid GEMINI_API_KEY — check the key in your .env file at "
+            "https://aistudio.google.com/apikey"
+        )
+
     if resp.status_code != 200:
         raise ExtractionError(
             f"Gemini API request failed ({resp.status_code}): {resp.text[:300]}"

@@ -76,15 +76,6 @@ def get_cases():
         return db.list_cases(conn)
 
 
-@app.get("/api/cases/{case_no}")
-def get_case(case_no: str):
-    with db.get_conn() as conn:
-        case = db.get_case(conn, case_no)
-    if not case:
-        raise HTTPException(status_code=404, detail="Case not found")
-    return case
-
-
 @app.get("/api/cases/search")
 def search_cases(q: str = "", period: str = "", verdict: str = ""):
     """Search cases with optional filters by name/case_no, period, and verdict."""
@@ -118,6 +109,15 @@ def get_case_pdf(case_no: str):
         media_type="application/pdf",
         headers={"Content-Disposition": f'inline; filename="{filename}"'},
     )
+
+
+@app.get("/api/cases/{case_no}")
+def get_case(case_no: str):
+    with db.get_conn() as conn:
+        case = db.get_case(conn, case_no)
+    if not case:
+        raise HTTPException(status_code=404, detail="Case not found")
+    return case
 
 
 @app.delete("/api/cases")
