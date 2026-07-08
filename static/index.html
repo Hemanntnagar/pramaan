@@ -93,8 +93,10 @@
   }
   .file-no{font-family:"IBM Plex Mono", monospace; font-size:12.5px; letter-spacing:0.05em; color:var(--ink-soft); text-transform:uppercase;}
   .file-no span{color:var(--seal); font-weight:600;}
+  .file-card__actions{display:flex; align-items:baseline; gap:14px; flex-wrap:wrap;}
   .link-btn{background:none; border:none; color:var(--ink-soft); text-decoration:underline; cursor:pointer; font-family:"IBM Plex Sans"; font-size:13px; padding:0;}
   .link-btn:hover{color:var(--seal);}
+  .link-btn:disabled{opacity:0.55; cursor:wait;}
 
   .grid-2{display:grid; grid-template-columns:1fr 1fr; gap:18px 22px; margin-bottom:6px;}
   label{display:flex; flex-direction:column; gap:6px; font-size:13px; font-weight:600; color:var(--ink-soft);}
@@ -390,7 +392,10 @@
     <div class="file-card">
       <div class="file-card__head">
         <span class="file-no">Case file no. <span id="case-no-preview">2026-001</span></span>
-        <button class="link-btn" id="btn-sample">Load a sample case →</button>
+        <div class="file-card__actions">
+          <button class="link-btn" id="btn-sample">Load a sample case →</button>
+          <button class="link-btn" id="btn-sample-invoices">Load sample invoices →</button>
+        </div>
       </div>
 
       <div id="ai-status-banner" class="ai-status-banner hidden"></div>
@@ -983,6 +988,29 @@ async function loadSampleFiles(){
   }
 }
 
+async function extractAndImportSampleInvoices(names){
+  if (!names.length) return;
+  const statusEls = {};
+  names.forEach(function(name){
+    statusEls[name] = addUploadStatus(name);
+  });
+  const resp = await fetch('/api/sample-invoices/extract', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ names: names })
+  });
+  const data = await resp.json();
+  if (!resp.ok) throw new Error(data.detail || 'Import failed');
+  for (const item of data.results){
+    const statusEl = statusEls[item.name] || addUploadStatus(item.name);
+    if (item.ok){
+      processExtractedFields(statusEl, item.name, item.fields);
+    } else {
+      setUploadStatus(statusEl, 'error', item.name + ' — ' + (item.error || 'could not read'));
+    }
+  }
+}
+
 async function importSampleInvoices(){
   const names = getSelectedSampleNames();
   if (!names.length) return;
@@ -991,26 +1019,38 @@ async function importSampleInvoices(){
   btn.disabled = true;
   btn.textContent = 'Importing…';
   try {
-    const resp = await fetch('/api/sample-invoices/extract', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ names: names })
-    });
-    const data = await resp.json();
-    if (!resp.ok) throw new Error(data.detail || 'Import failed');
-    for (const item of data.results){
-      const statusEl = addUploadStatus(item.name);
-      if (item.ok){
-        processExtractedFields(statusEl, item.name, item.fields);
-      } else {
-        setUploadStatus(statusEl, 'error', item.name + ' — ' + (item.error || 'could not read'));
-      }
-    }
+    await extractAndImportSampleInvoices(names);
   } catch (err){
     alert('Sample invoice import failed: ' + err.message);
   } finally {
     btn.disabled = false;
     btn.textContent = 'Import selected';
+  }
+}
+
+async function loadSampleInvoices(){
+  const btn = document.getElementById('btn-sample-invoices');
+  btn.disabled = true;
+  const originalText = btn.textContent;
+  btn.textContent = 'Loading…';
+  try {
+    const resp = await fetch('/api/sample-invoices');
+    const data = await resp.json();
+    if (!resp.ok) throw new Error(data.detail || 'Could not load sample invoices');
+    const names = (data.files || []).map(function(f){ return f.name; });
+    if (!names.length){
+      alert('No sample invoices found. Add PDF or image files to sample_invoices/.');
+      return;
+    }
+    document.getElementById('upload-status').innerHTML = '';
+    document.getElementById('docs-table').querySelectorAll('.docs-row:not(.docs-row--head)').forEach(function(r){ r.remove(); });
+    document.getElementById('report-panel').classList.add('hidden');
+    await extractAndImportSampleInvoices(names);
+  } catch (err){
+    alert('Sample invoice load failed: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = originalText;
   }
 }
 
@@ -1161,6 +1201,7 @@ document.addEventListener('DOMContentLoaded', async function(){
   document.getElementById('btn-add-doc').addEventListener('click', function(){ addDocRow(); });
   document.getElementById('btn-verify').addEventListener('click', runVerification);
   document.getElementById('btn-sample').addEventListener('click', loadSample);
+  document.getElementById('btn-sample-invoices').addEventListener('click', loadSampleInvoices);
   document.getElementById('file-upload').addEventListener('change', function(e){
     if (e.target.files && e.target.files.length){ handleFiles(e.target.files); }
     e.target.value = '';
